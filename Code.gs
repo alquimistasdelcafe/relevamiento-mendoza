@@ -45,10 +45,12 @@ function doPost(e){let lock;try{
  lock=LockService.getScriptLock();lock.waitLock(15000);const sh=sheet_(SpreadsheetApp.openById(id));
  const exists=sh.getLastRow()>1&&sh.getRange(2,2,sh.getLastRow()-1,1).createTextFinder(p.submission_id).matchEntireCell(true).findNext();
  if(!exists){const safe=v=>/^[\s]*[=+@-]/.test(v)?"'"+v:v;sh.appendRow([new Date(),p.submission_id,...SCHEMA.map(q=>safe(answers[q.key]||'')),safe(email),p.novedades||'',p.consentimiento,'v3']);SpreadsheetApp.flush();}
- return page_('¡Gracias por compartir tu recorrido!','Tu respuesta quedó guardada. Ya podés cerrar esta página.');
- }catch(err){return page_('No pudimos registrar tu respuesta','Volvé atrás y revisá tus respuestas. '+err.message);}finally{if(lock&&lock.hasLock())lock.releaseLock();}}
+ return p.response_format==='json'?json_({ok:true,submission_id:p.submission_id}):page_('¡Gracias por compartir tu recorrido!','Tu respuesta quedó guardada. Ya podés cerrar esta página.');
+ }catch(err){return e&&e.parameter&&e.parameter.response_format==='json'?json_({ok:false,error:err.message}):page_('No pudimos registrar tu respuesta','Volvé atrás y revisá tus respuestas. '+err.message);}finally{if(lock&&lock.hasLock())lock.releaseLock();}}
 function page_(title,message){
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  return HtmlService.createHtmlOutput('<!doctype html><html lang="es"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+'</title><body style="background:#f4eddf;color:#39281f;font:20px/1.5 Arial;padding:10%;max-width:700px"><p>ALQUIMISTAS DEL CAFÉ</p><h1>'+escape(title)+'</h1><p>'+escape(message)+'</p></body></html>');
 }
 
+
+function json_(data){return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);}
