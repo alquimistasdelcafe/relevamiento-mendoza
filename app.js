@@ -14,7 +14,38 @@ function validateStep(){errors.textContent='';const p=values();for(const q of SC
 form.addEventListener('change',e=>{const q=SCHEMA.find(q=>q.key===e.target.name);if(q?.exclusive&&e.target.checked){const inputs=[...form.elements[q.key]];inputs.forEach(i=>{if(i!==e.target&&(e.target.value===q.exclusive||i.value===q.exclusive))i.checked=false;});}errors.textContent='';update();});
 el('next').onclick=()=>{if(validateStep()){step++;update(true);}};
 el('back').onclick=()=>{step--;errors.textContent='';update(true);};
-form.addEventListener('submit',e=>{e.preventDefault();if(step!==3){el('next').click();return;}if(!validateStep())return;try{normalize(values());}catch(err){errors.textContent=err.message;return;}if(!form.reportValidity())return;if(!live){form.hidden=true;el('done').hidden=false;el('done').focus();return;}form.action=endpoint;el('send').disabled=true;el('send').textContent='Enviando…';HTMLFormElement.prototype.submit.call(form);});
+let sending=false,submitted=false;
+form.addEventListener('submit',async e=>{
+ e.preventDefault();if(sending||submitted)return;
+ if(step!==3){el('next').click();return;}
+ if(!validateStep())return;
+ try{normalize(values());}catch(err){errors.textContent=err.message;return;}
+ if(!form.reportValidity())return;
+ if(!live){form.hidden=true;el('done').hidden=false;el('done').focus();return;}
+ const body=new URLSearchParams(new FormData(form));body.set('response_format','json');
+ const submissionId=body.get('submission_id'),controller=new AbortController();
+ sending=true;form.inert=true;el('send').disabled=true;el('send').textContent='Enviando…';errors.textContent='';
+ const timer=setTimeout(()=>controller.abort(),45000);
+ try{
+  const response=await fetch(endpoint,{method:'POST',body,credentials:'omit',signal:controller.signal});
+  if(!response.ok)throw Error('No pudimos confirmar el guardado.');
+  const result=await response.json();
+  if(!result.ok)throw Error(result.error||'No pudimos registrar tu respuesta.');
+  if(result.submission_id!==submissionId)throw Error('No pudimos confirmar el guardado.');
+  submitted=true;form.hidden=true;
+  el('done').querySelector('h2').textContent='¡Gracias por compartir tu recorrido!';
+  el('done').querySelector('p').textContent='Tu respuesta quedó guardada. Gracias por ayudarnos a conocer y fortalecer la comunidad cafetera.';
+  el('restart').hidden=true;el('done').hidden=false;
+  if(el('confirmation'))el('confirmation').showModal();else el('done').focus();
+ }catch(err){
+  errors.textContent=err.name==='AbortError'||err instanceof TypeError?'No pudimos confirmar el guardado. Revisá tu conexión y volvé a enviar: el reintento no duplica tu respuesta.':err.message;
+ }finally{
+  clearTimeout(timer);sending=false;form.inert=false;el('send').disabled=false;el('send').textContent='Enviar mi respuesta';
+  if(!submitted)errors.focus();
+ }
+});
+el('close-confirmation')?.addEventListener('click',()=>el('confirmation').close());
+el('confirmation')?.addEventListener('close',()=>el('done').focus());
 el('restart').onclick=()=>{form.reset();el('submission_id').value=crypto.randomUUID();form.hidden=false;el('done').hidden=true;step=1;update(true);};
 window.addEventListener('pageshow',()=>{el('send').disabled=false;update();});
 el('submission_id').value=crypto.randomUUID();el('status').textContent=live?'Tus respuestas nos ayudan a conocer y fortalecer la comunidad cafetera.':'Modo de prueba: recorré el formulario. Las respuestas no se envían ni se guardan.';update();
