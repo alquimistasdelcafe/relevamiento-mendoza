@@ -12,7 +12,8 @@ function normalize(p){
  return out;
 }
 
-const HEADERS=['Fecha','ID',...SCHEMA.map(q=>q.key),'email','novedades','consentimiento','Version','barreras_otra'];
+const OTHER_DETAILS=[{"key":"barreras","option":"Otra","field":"barreras_otra"},{"key":"tareas","option":"Otra","field":"tareas_otra"},{"key":"espacio","option":"Otro","field":"espacio_otro"},{"key":"salida","option":"Otro motivo","field":"salida_otro"},{"key":"genero","option":"Otra identidad","field":"genero_otra"}];
+const HEADERS=['Fecha','ID',...SCHEMA.map(q=>q.key),'email','novedades','consentimiento','Version',...OTHER_DETAILS.map(d=>d.field)];
 function sheet_(ss){
  let sh=ss.getSheetByName('Respuestas_v3');
  if(!sh){sh=ss.insertSheet('Respuestas_v3');sh.appendRow(HEADERS);sh.setFrozenRows(1);}
@@ -38,15 +39,20 @@ function doPost(e){let lock;try{
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.submission_id||''))throw Error('Identificador no válido.');
  const raw={...p};for(const q of SCHEMA)if(q.kind==='multi')raw[q.key]=(e.parameters||{})[q.key]||[];
  const answers=normalize(raw);
- const detalle=(raw.barreras||[]).includes('Otra')?(p.barreras_otra||''):'';
- if(typeof detalle!=='string'||detalle.length>1200)throw Error('Revisá la aclaración de otra dificultad.');
+ const detalles=OTHER_DETAILS.map(d=>{
+ const q=SCHEMA.find(q=>q.key===d.key),answer=raw[d.key];
+ const selected=visible(q,raw)&&(Array.isArray(answer)?answer.includes(d.option):answer===d.option);
+ const value=selected?(p[d.field]||''):'';
+ if(typeof value!=='string'||value.length>1200)throw Error('Revisá la aclaración: '+q.title);
+ return value.trim();
+ });
  if(p.novedades&&p.novedades!=='si')throw Error('Opción no válida.');
  const email=p.novedades==='si'?(p.email||''):'';
  if(p.novedades==='si'&&(email.length>254||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))throw Error('Revisá tu correo.');
  const id=PropertiesService.getScriptProperties().getProperty('SHEET_ID');if(!id)throw Error('Relevamiento todavía no habilitado.');
  lock=LockService.getScriptLock();lock.waitLock(15000);const sh=sheet_(SpreadsheetApp.openById(id));
  const exists=sh.getLastRow()>1&&sh.getRange(2,2,sh.getLastRow()-1,1).createTextFinder(p.submission_id).matchEntireCell(true).findNext();
- if(!exists){const safe=v=>/^[\s]*[=+@-]/.test(v)?"'"+v:v;sh.appendRow([new Date(),p.submission_id,...SCHEMA.map(q=>safe(answers[q.key]||'')),safe(email),p.novedades||'',p.consentimiento,'v3',safe(detalle.trim())]);SpreadsheetApp.flush();}
+ if(!exists){const safe=v=>/^[\s]*[=+@-]/.test(v)?"'"+v:v;sh.appendRow([new Date(),p.submission_id,...SCHEMA.map(q=>safe(answers[q.key]||'')),safe(email),p.novedades||'',p.consentimiento,'v3',...detalles.map(safe)]);SpreadsheetApp.flush();}
  return p.response_format==='json'?json_({ok:true,submission_id:p.submission_id}):page_('¡Gracias por compartir tu recorrido!','Tu respuesta quedó guardada. Ya podés cerrar esta página.');
  }catch(err){return e&&e.parameter&&e.parameter.response_format==='json'?json_({ok:false,error:err.message}):page_('No pudimos registrar tu respuesta','Volvé atrás y revisá tus respuestas. '+err.message);}finally{if(lock&&lock.hasLock())lock.releaseLock();}}
 function page_(title,message){
