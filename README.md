@@ -3,7 +3,7 @@
 Proyecto de Alquimistas del Café. Formulario estático de tres pasos, adaptado al vínculo de cada persona con el sector.
 
 ## Estado
-Código copiado a la cuenta de Alquimistas. Planilla privada creada en su Drive, con pestaña Respuestas_v3 y 22 columnas. El formulario permanece en modo de prueba: todavía no envía ni guarda respuestas. Falta completar el aviso de privacidad, activar GitHub Pages y desplegar el receptor de Apps Script.
+Código copiado a la cuenta de Alquimistas. Planilla privada creada en su Drive, con pestaña Respuestas_v3 y 22 columnas. El formulario está activo y se verificó un envío de prueba. Falta completar el aviso de privacidad antes de difundir.
 
 ## Activar la recepción
 1. Con la cuenta alquimistasdelcafe@gmail.com, abrir la planilla de respuestas creada para este relevamiento.
@@ -24,4 +24,4 @@ El servidor valida valores, descarta campos ajenos al recorrido, neutraliza fór
 Completar identificación y domicilio del responsable, derechos, conservación y demás puntos del aviso de privacidad definidos con el equipo. La aceptación de contacto es independiente del consentimiento del relevamiento. Este sondeo voluntario no representa automáticamente a todo el sector.
 
 ## Verificación
-La lógica de recorridos y validaciones tiene pruebas locales previas. La copia de código y los encabezados de la planilla fueron revisados. Pendientes: activación de Pages, prueba visual del nuevo sitio y envío real a Apps Script. Configuración vacía mantiene el modo de prueba.
+La lógica de recorridos y validaciones tiene pruebas locales previas. La copia de código y los encabezados de la planilla fueron revisados. Publicación y envío de prueba verificados. El aviso de privacidad sigue pendiente antes de la difusión.
