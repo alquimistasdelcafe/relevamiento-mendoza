@@ -37,6 +37,7 @@ form.addEventListener('submit',async e=>{
  if(!form.reportValidity())return;
  if(!live){form.hidden=true;el('done').hidden=false;el('done').focus();return;}
  const body=new URLSearchParams(new FormData(form));body.set('response_format','json');
+ if(body.get('provincia')!=='Mendoza')body.set('departamento','Fuera de Mendoza');
  const submissionId=body.get('submission_id'),controller=new AbortController();
  sending=true;form.inert=true;el('send').disabled=true;el('send').textContent='Enviando…';errors.textContent='';
  const timer=setTimeout(()=>controller.abort(),45000);
@@ -63,3 +64,4 @@ el('confirmation')?.addEventListener('close',()=>el('done').focus());
 el('restart').onclick=()=>{form.reset();el('submission_id').value=crypto.randomUUID();form.hidden=false;el('done').hidden=true;step=1;update(true);};
 window.addEventListener('pageshow',()=>{el('send').disabled=false;update();});
 el('submission_id').value=crypto.randomUUID();el('status').textContent=live?'Tus respuestas nos ayudan a conocer y fortalecer la comunidad cafetera.':'Modo de prueba: recorré el formulario. Las respuestas no se envían ni se guardan.';update();
+
