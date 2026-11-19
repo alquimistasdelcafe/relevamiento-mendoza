@@ -31,6 +31,41 @@
     "exclusive": "Todavía no tuve formación"
   },
   {
+    "key": "provincia",
+    "title": "¿En qué provincia vivís?",
+    "kind": "select",
+    "options": [
+      "Mendoza",
+      "Buenos Aires",
+      "Ciudad Autónoma de Buenos Aires",
+      "Catamarca",
+      "Chaco",
+      "Chubut",
+      "Córdoba",
+      "Corrientes",
+      "Entre Ríos",
+      "Formosa",
+      "Jujuy",
+      "La Pampa",
+      "La Rioja",
+      "Misiones",
+      "Neuquén",
+      "Río Negro",
+      "Salta",
+      "San Juan",
+      "San Luis",
+      "Santa Cruz",
+      "Santa Fe",
+      "Santiago del Estero",
+      "Tierra del Fuego, Antártida e Islas del Atlántico Sur",
+      "Tucumán"
+    ],
+    "step": 1,
+    "when": "all",
+    "required": true,
+    "exclusive": null
+  },
+  {
     "key": "departamento",
     "title": "¿En qué departamento vivís?",
     "kind": "select",
@@ -52,11 +87,10 @@
       "San Carlos",
       "San Rafael",
       "General Alvear",
-      "Malargüe",
-      "Fuera de Mendoza"
+      "Malargüe"
     ],
     "step": 1,
-    "when": "all",
+    "when": "mendoza",
     "required": true,
     "exclusive": null
   },
